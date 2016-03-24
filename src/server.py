@@ -75,3 +75,7 @@ class Server(ThreadObject):
     @QtCore.Slot(int)
     def count_down_changed(self,count_down):
         self.__pub_socket.send_json({"event":"count_down_changed","count_down":count_down})
+
+    @QtCore.Slot(int)
+    def printing_image(self,image_name):
+        self.__pub_socket.send_json({"event":"printing_image","image_name":image_name})

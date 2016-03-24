@@ -18,7 +18,7 @@ class Buttons(ThreadObject):
     led2 = 18#11
     STATE_LIVE_STREAM = 0
     STATE_TAKING_PICTURE = 1
-    STATE_PICTURE_SHOWN = 2
+    STATE_NEW_IMAGE = 2
     STATE_PRINTING_PICTURE = 3
     msg_recieved = QtCore.Signal(dict)
     def __init__(self, ip, req_port, sub_port):
@@ -44,6 +44,17 @@ class Buttons(ThreadObject):
         self.__sub_socket.setsockopt(zmq.SUBSCRIBE, sub_filter)
         
         
+    def __blink(self,leds=[],n=5,t=100):
+        if n<0:
+            return
+        _n = n
+        while _n>0:
+            _n -= 1
+            [GPIO.output(led, GPIO.HIGH) for led in leds]
+            time.sleep(t/1000.0)
+            [GPIO.output(led, GPIO.LOW) for led in leds]
+            time.sleep(t/1000.0)
+
     @QtCore.Slot()
     def start(self):
         self.__init_zmq()
@@ -54,8 +65,7 @@ class Buttons(ThreadObject):
         GPIO.setup(self.led1, GPIO.OUT)
         GPIO.setup(self.led2, GPIO.OUT)
 	# Zu Beginn ist eine Laufbestaetigung wichtig deswegen mit High beginnen.
-        GPIO.output(self.led1, GPIO.HIGH)
-        GPIO.output(self.led2, GPIO.HIGH)
+        self.__blink([self.led1,self.led2])
 
 	# Event Detection 
 	#GPIO.add_event_detect(self.button1, GPIO.FALLING, callback=self.__take_pic(), bouncetime=300)
@@ -73,21 +83,16 @@ class Buttons(ThreadObject):
             #print 'tick', "tcp://%s:%s" % (self.__ip,self.__sub_port)
             button1_pressed = GPIO.input(self.button1)==GPIO.LOW
             button2_pressed = GPIO.input(self.button2)==GPIO.LOW
-            #print button1_pressed, button2_pressed
-            if button1_pressed and self.__state in [self.STATE_LIVE_STREAM,
-                                                    self.STATE_PICTURE_SHOWN]:
+            print button1_pressed, button2_pressed, self.__state
+            if button1_pressed and self.__state in [self.STATE_LIVE_STREAM]:
                 self.__take_pic()
-            if button2_pressed:
+            if button2_pressed and self.__state in [self.STATE_NEW_IMAGE]:
                 self.__print_pic()
-            socks = dict(poller.poll(10))
+            socks = dict(poller.poll(100))
             if self.__sub_socket in socks:
                 msg = self.__sub_socket.recv_json()
                 if type(msg)==dict and 'event' in msg:
                     self.__process_event(msg)
-            if self.__state == self.STATE_PICTURE_SHOWN:
-                GPIO.output(self.led2, GPIO.HIGH)
-            else:
-                GPIO.output(self.led2, GPIO.LOW)
 
     # Funktion schickt Signal an Camera.py zum fotografieren eines Fotos
     def __take_pic(self):
@@ -100,13 +105,12 @@ class Buttons(ThreadObject):
         
 
     def __print_pic(self):
-        if self.__state == self.STATE_PICTURE_SHOWN:
-            self.__req_socket.send_json({'cmd':'print_pic',
-                                         'args':[self.__current_image_name]})
-            msg = self.__req_socket.recv_json()
-            print msg
-            if type(msg)==dict and 'cmdRecieved' in  msg and msg['cmdRecieved']=='print_pic':
-                self.__state = self.STATE_PRINTING_PICTURE
+        self.__req_socket.send_json({'cmd':'print_pic',
+                                     'args':[self.__current_image_name]})
+        msg = self.__req_socket.recv_json()
+        print msg
+        if type(msg)==dict and 'cmdRecieved' in  msg and msg['cmdRecieved']=='print_pic':
+            self.__state = self.STATE_PRINTING_PICTURE
 
     # Funktion empfaengt Signal zum steuern der LEDS wieso nicht in class LEDs 
     # Welche events werden hier empfangen.
@@ -114,9 +118,16 @@ class Buttons(ThreadObject):
     # Events: LED an, LED aus, LED Blinken start, LED Blinken Stop, LED Blinken x-mal  
         
     def __process_event(self, event):
+        print event
         if event['event'] == "new_image":
             self.__current_image_name = event['image_name']
-            self.__state = self.STATE_PICTURE_SHOWN
+            self.__state = self.STATE_NEW_IMAGE
+            GPIO.output(self.led2, GPIO.HIGH)
+            #GPIO.output(self.led2, GPIO.LOW)
+        if event['event'] == "printing_image":
+            print 'printing:', event['image_name']
+            self.__state = self.STATE_PRINTING_PICTURE
+            self.__blink([self.led2])
         elif event['event'] == "count_down_changed":
             self.__state = self.STATE_LIVE_STREAM
             GPIO.output(self.led1, GPIO.HIGH)
@@ -125,25 +136,8 @@ class Buttons(ThreadObject):
             self.__state = self.STATE_TAKING_PICTURE
         elif event['event'] == "live_stream_activated":
             self.__state = self.STATE_LIVE_STREAM
+            GPIO.output(self.led2, GPIO.LOW)
     
-    # Funktion zum Blinken der LEDs? (machen wir das nicht schon in process_event
-    def __blink(self):
-        pass
-
-# Klasse zum Stueren der LEDs
-class LEDs(ThreadObject):
-    stopped = QtCore.Signal()                                                                  
-    started = QtCore.Signal()
-    msg_recieved = QtCore.Signal(dict)
-    def __init__(self):
-        super(LEDs,self).__init__()
-
-    @QtCore.Slot()
-    def start(self):
-        while self.__running:
-            print 'GO'
-            time.sleep(1)
-
 import signal
 
 def greatExit(signal, frame):
@@ -169,7 +163,6 @@ def main():
 
     print 'My PID is:', os.getpid()
     
-    leds = LEDs()
     buttons = Buttons('127.0.0.1',
                         Config.req_rep_port,
                         Config.pub_sub_port)
