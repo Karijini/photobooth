@@ -131,7 +131,7 @@ class Camera(ThreadObject):
         #print 'camera.__take_preview_pic'
         image = QtGui.QImage()
         if not self.use_real_camera:
-            image.load('preview.jpg')
+            image.load('./data/preview.jpg')
         else:
             camera_file = gp.check_result(gp.gp_camera_capture_preview(self.__camera, self.__context))
             file_data = gp.check_result(gp.gp_file_get_data_and_size(camera_file))
@@ -155,7 +155,7 @@ class Camera(ThreadObject):
             
     def __take_pic(self):
         print 'camera.__take_pic'
-        target = './test.jpg'
+        target = './data/preview.jpg'
         if not self.use_real_camera:
             pass
             #self.pic_taken.emit('test.jpg')
