@@ -83,7 +83,7 @@ class Buttons(ThreadObject):
             #print 'tick', "tcp://%s:%s" % (self.__ip,self.__sub_port)
             button1_pressed = GPIO.input(self.button1)==GPIO.LOW
             button2_pressed = GPIO.input(self.button2)==GPIO.LOW
-            print button1_pressed, button2_pressed, self.__state
+            #print button1_pressed, button2_pressed, self.__state
             if button1_pressed and self.__state in [self.STATE_LIVE_STREAM]:
                 self.__take_pic()
             if button2_pressed and self.__state in [self.STATE_NEW_IMAGE]:
@@ -136,6 +136,7 @@ class Buttons(ThreadObject):
             self.__state = self.STATE_TAKING_PICTURE
         elif event['event'] == "live_stream_activated":
             self.__state = self.STATE_LIVE_STREAM
+            GPIO.output(self.led1, GPIO.HIGH)
             GPIO.output(self.led2, GPIO.LOW)
     
 import signal
