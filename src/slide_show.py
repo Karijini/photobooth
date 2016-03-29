@@ -42,5 +42,5 @@ class SlideShow(QtCore.QObject):
         self.__image_names.append(image_name)
         print image_name, self.__library.get_thumbnail_path(image_name)
         #library.image_added.connect(server.image_added_to_lib)
-        self.__current_index = self.__image_names.index(image_name)
-        self.start()
+        #self.__current_index = self.__image_names.index(image_name)
+        #self.start()

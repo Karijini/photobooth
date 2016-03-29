@@ -14,7 +14,7 @@ class Printer(QtCore.QObject):
         try:
             conn = cups.Connection()
             printers = conn.getPrinters()
-            printer_name = printers.keys()[0] # Drucker auswaehlen
+            printer_name = printers.keys()[1] # Drucker auswaehlen
             cups.setUser('pi') #Benutzer einstellen
             # Drucken (Drucker, Datei, PrintJob Name, Optionen)
             conn.printFile(printer_name,

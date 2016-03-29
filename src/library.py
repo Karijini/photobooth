@@ -46,7 +46,7 @@ class Library(QtCore.QObject):
         _path = os.path.join(self.__image_path,image_name+'.%s'%self.image_ext)
         thumbnail_path = os.path.join(self.__thumbnail_path,image_name+'.%s'%self.image_ext)
         i = QtGui.QImage(_path)
-        thumbnail = i.scaled(800,600)
+        thumbnail = i.scaledToWidth(Config.thumbnail_width)
         thumbnail.save(thumbnail_path)
 
     def get_next_image_name(self):

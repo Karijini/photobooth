@@ -57,7 +57,7 @@ class Widget(QtGui.QWidget):
         self.__stop_preview_button.clicked.connect(self.__camera.stop_preview)
         self.__take_pic_button.clicked.connect(self.__camera.take_pic)
 
-        #self.setWindowState(QtCore.Qt.WindowFullScreen)
+        self.setWindowState(QtCore.Qt.WindowFullScreen)
         self.setStyleSheet("background-color:grey;")
         
         self.__bg_pixmap = QtGui.QPixmap('data/bg.png').scaled(self.__desktop.width(),
@@ -104,9 +104,10 @@ class Widget(QtGui.QWidget):
 
     def __new_preview_image(self, image):
         #_image = image.scaledToWidth(self.__preview_rect.width())
-        image.scaledToWidth(self.__preview_rect.width())
-        _image = image.scaled(self.__preview_rect.width(),self.__preview_rect.height())
-        p = QtGui.QPixmap.fromImage(_image)
+        #_image = image.scaledToWidth(self.__preview_rect.width())
+        self.__preview_label.resize(image.width(), image.height())
+        #_image = image.scaled(self.__preview_rect.width(),self.__preview_rect.height())
+        p = QtGui.QPixmap.fromImage(image)
         self.__preview_label.setPixmap(p)
         fps = int(1.0 / (time.time()-self.__last_update))
         self.__update_fps(fps)

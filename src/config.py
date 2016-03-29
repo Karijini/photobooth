@@ -6,6 +6,7 @@ class Config(object):
     show_pic_time = 10 #seconds for how log the taken pic will be shown before live stream starts again
     count_down_time = 5 #seconds till pic gest taken
     camera_cfg = 'camera.cfg'
-    preview_ui_pos_size = (.05,.1,.9,.8) #percent of with and height
+    preview_ui_pos_size = (.05,.1,.6,.8) #percent of with and height
     button_hide_time = 30#seconds
     slide_show_time = 2
+    thumbnail_width = 800
