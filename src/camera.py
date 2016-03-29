@@ -42,6 +42,8 @@ class Camera(ThreadObject):
         self.__watcher = None
         self.__preview_width = 1200
         self.__preview_height = 800
+        self.__preview_transform = QtGui.QTransform()
+        self.__preview_transform.scale(-1,1)
         
     def set_preview_size(self, width, height):
         self.__preview_width = width
@@ -248,10 +250,10 @@ class Camera(ThreadObject):
                        '%i'%(self.__count_down_n))
             p.end()
         #print self.__preview_rect
-        image = QtGui.QImage(image).scaledToWidth(self.__preview_width,
+        image = image.scaledToHeight(self.__preview_height,
                                     transformMode=QtCore.Qt.SmoothTransformation)
 
-        self.new_preview_image.emit(image)
+        self.new_preview_image.emit(image.transformed(self.__preview_transform))
         #time.sleep(1)
 
             
@@ -269,8 +271,8 @@ class Camera(ThreadObject):
             print camera_file
             gp.check_result(gp.gp_file_save(camera_file, target))
         self.pic_taken.emit(target)
-        image = QtGui.QImage(target).scaledToWidth(self.__preview_width,
+        image = QtGui.QImage(target).scaledToHeight(self.__preview_height,
                                     transformMode=QtCore.Qt.SmoothTransformation)
-        self.new_preview_image.emit(image)
+        self.new_preview_image.emit(image.transformed(self.__preview_transform))
         #time.sleep(5)
         
