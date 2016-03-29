@@ -4,7 +4,7 @@ import time
 from config import Config
 
 class Widget(QtGui.QWidget):
-    def __init__(self,camera,server,library,printer):
+    def __init__(self,camera,server,library,printer,slide_show):
         super(Widget,self).__init__()
         self.setMouseTracking(True)
         self.__desktop = QtGui.QDesktopWidget().geometry()
@@ -43,17 +43,21 @@ class Widget(QtGui.QWidget):
         self.__server = server
         self.__library = library
         self.__printer = printer
+        self.__slide_show = slide_show
 
         self.__camera.set_preview_size(width, height)
         self.__camera.new_preview_image.connect(self.__new_preview_image)
         self.__camera.pic_taken.connect(self.__pic_taken)
         self.__camera.count_down_changed.connect(self.__count_down_changed)
+        
+        self.__slide_show.show_image.connect(self.__new_preview_image)
+        
 
         self.__start_preview_button.clicked.connect(self.__camera.start_preview)
         self.__stop_preview_button.clicked.connect(self.__camera.stop_preview)
         self.__take_pic_button.clicked.connect(self.__camera.take_pic)
 
-        self.setWindowState(QtCore.Qt.WindowFullScreen)
+        #self.setWindowState(QtCore.Qt.WindowFullScreen)
         self.setStyleSheet("background-color:grey;")
         
         self.__bg_pixmap = QtGui.QPixmap('data/bg.png').scaled(self.__desktop.width(),

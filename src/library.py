@@ -73,3 +73,9 @@ class Library(QtCore.QObject):
         if os.path.isfile(path):
             return path
         return None
+
+    def get_thumbnail_path(self, image_name):
+        path = os.path.join(self.__thumbnail_path,image_name+'.%s'%self.image_ext)
+        if os.path.isfile(path):
+            return path
+        return None

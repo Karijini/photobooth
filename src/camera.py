@@ -253,6 +253,7 @@ class Camera(ThreadObject):
 
         self.new_preview_image.emit(image)
         #time.sleep(1)
+
             
     def __take_pic(self):
         print 'camera.__take_pic'

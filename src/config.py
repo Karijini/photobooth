@@ -8,3 +8,4 @@ class Config(object):
     camera_cfg = 'camera.cfg'
     preview_ui_pos_size = (.05,.1,.9,.8) #percent of with and height
     button_hide_time = 30#seconds
+    slide_show_time = 2
