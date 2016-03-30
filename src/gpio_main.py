@@ -12,9 +12,9 @@ from config import Config
 class Buttons(ThreadObject):
     stopped = QtCore.Signal()                                                                  
     started = QtCore.Signal()
-    button1 = 17 # 7
+    button1 = 4 # 7
     button2 = 23 # 16
-    led1 = 4#12
+    led1 = 17#12
     led2 = 18#11
     STATE_LIVE_STREAM = 0
     STATE_TAKING_PICTURE = 1
@@ -83,7 +83,7 @@ class Buttons(ThreadObject):
             #print 'tick', "tcp://%s:%s" % (self.__ip,self.__sub_port)
             button1_pressed = GPIO.input(self.button1)==GPIO.LOW
             button2_pressed = GPIO.input(self.button2)==GPIO.LOW
-            print button1_pressed, button2_pressed, self.__state
+            #print button1_pressed, button2_pressed, self.__state
             if button1_pressed and self.__state in [self.STATE_LIVE_STREAM]:
                 self.__take_pic()
             if button2_pressed and self.__state in [self.STATE_NEW_IMAGE]:
