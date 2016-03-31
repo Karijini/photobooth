@@ -8,7 +8,8 @@ class Printer(QtCore.QObject):
         super(Printer,self).__init__()
         self.__library = library
 
-    def print_image(self, image_name):
+    @QtCore.Slot(str)
+    def print_pic(self, image_name):
         # Dateinahmen bestimmen:
         print 'printing:',self.__library.get_image_path(image_name)
         try:
@@ -34,4 +35,4 @@ class Printer(QtCore.QObject):
     def process_cmd(self,msg):
         print msg
         if msg['cmd']=='print_pic':
-            self.print_image(*msg['args'])
+            self.print_pic(*msg['args'])

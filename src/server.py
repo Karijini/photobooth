@@ -20,6 +20,7 @@ class Server(ThreadObject):
 
     @QtCore.Slot()
     def start(self):
+        self.__running = True
         self.__ctx = zmq.Context()
         a = "tcp://%s:%s" % (self.__ip,self.__rep_port)
         self.__rep_socket = self.__ctx.socket(zmq.REP)
@@ -28,7 +29,6 @@ class Server(ThreadObject):
         self.__pub_socket.bind("tcp://*:%i" % self.__pub_port)
         poller = zmq.Poller()
         poller.register(self.__rep_socket, zmq.POLLIN)
-        self.__running = True
         self.started.emit()
         while self.__running:
             QtGui.QApplication.processEvents()
@@ -45,8 +45,8 @@ class Server(ThreadObject):
                         self.__rep_socket.send(response)
                 else:
                     self.__rep_socket.send_json({})
-
         self.stopped.emit()
+        self.thread().terminate()
 
     def __process_cmd(self, msg):
         print msg

@@ -6,6 +6,9 @@ class ThreadObject(QtCore.QObject):
 
     def start(self):
         pass
+        
+    def stop(self):
+        pass
 
     @classmethod
     def startThread(cls, instance):

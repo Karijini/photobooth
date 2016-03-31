@@ -20,7 +20,7 @@ class Camera(ThreadObject):
     use_real_camera = True
     countdown_pen = QtGui.QPen(QtGui.QColor(255,0,0),400)
     count_down_changed = QtCore.Signal(int)
-    threads = {}
+    count_down_started = QtCore.Signal()
     draw_countdown = False
     def __init__(self,previewPort=5558):
         super(Camera,self).__init__()
@@ -153,15 +153,17 @@ class Camera(ThreadObject):
         self.__running = True
         while self.__running:
             if self.__count_down_start!=None:
+                if not self.__preview:
+                    self.start_preview()
                 count_down_n = max(int(self.__count_down_start + self.__count_down - time.time()),0)
                 if count_down_n!=self.__count_down_n:
                     self.__count_down_n = count_down_n
                     self.count_down_changed.emit(count_down_n)
                 if time.time() - self.__count_down_start > self.__count_down:
-                    self.__apply_settings(self.__capture_settings)
+                    self.__preview = False
                     self.__take_pic()
                     self.__count_down_start = None
-                    self.__show_pic_start = time.time()
+                    #self.__show_pic_start = time.time()
                     
             if self.__show_pic_start!=None:
                 if time.time() - self.__show_pic_start > self.__show_pic_time:
@@ -178,7 +180,9 @@ class Camera(ThreadObject):
         if self.use_real_camera:
             self.__stop_camera()
         self.stopped.emit()
-        print 'stopped'
+        print 'camera stopped'
+        self.thread().terminate()
+        print '#'
 
     @QtCore.Slot()
     def stop(self):
@@ -211,7 +215,7 @@ class Camera(ThreadObject):
     
     def __process_cmd(self, cmd):
         if cmd['cmd']=='take_pic':
-            
+            self.count_down_started.emit()
             self.__count_down_start = time.time()
         elif cmd['cmd']=='start_preview':
             self.__preview = True
@@ -219,7 +223,7 @@ class Camera(ThreadObject):
             
         elif cmd['cmd']=='stop_preview':
             self.__preview = False
-
+            
     def __pub_image(self, image_data):
         #kp1, des1 = self.__detector.detectAndCompute(img,None)
         #cv2.drawKeypoints(img,kp1,img)
@@ -229,7 +233,7 @@ class Camera(ThreadObject):
         #time.sleep(5)
 
     def __take_preview_pic(self):
-        #print 'camera.__take_preview_pic'
+        print 'camera.__take_preview_pic'
         image = QtGui.QImage()
         if not self.use_real_camera:
             image.load('./data/preview.jpg')
@@ -249,7 +253,6 @@ class Camera(ThreadObject):
                        (image.height()+size)/2,
                        '%i'%(self.__count_down_n))
             p.end()
-        #print self.__preview_rect
         image = image.scaledToHeight(self.__preview_height,
                                     transformMode=QtCore.Qt.SmoothTransformation)
 
@@ -264,6 +267,7 @@ class Camera(ThreadObject):
             pass
             #self.pic_taken.emit('test.jpg')
         else:
+            self.__apply_settings(self.__capture_settings)
             file_path = gp.check_result(gp.gp_camera_capture(self.__camera, gp.GP_CAPTURE_IMAGE, self.__context))
             camera_file = gp.check_result(gp.gp_camera_file_get(
                 self.__camera, file_path.folder, file_path.name,
@@ -271,8 +275,8 @@ class Camera(ThreadObject):
             print camera_file
             gp.check_result(gp.gp_file_save(camera_file, target))
         self.pic_taken.emit(target)
-        image = QtGui.QImage(target).scaledToHeight(self.__preview_height,
-                                    transformMode=QtCore.Qt.SmoothTransformation)
-        self.new_preview_image.emit(image.transformed(self.__preview_transform))
+        #image = QtGui.QImage(target).scaledToHeight(self.__preview_height,
+        #                            transformMode=QtCore.Qt.SmoothTransformation)
+        #self.new_preview_image.emit(image.transformed(self.__preview_transform))
         #time.sleep(5)
         

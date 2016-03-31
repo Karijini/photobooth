@@ -1,6 +1,7 @@
 import os
 import shutil
 from PySide import QtGui, QtCore
+from config import Config
 
 class Library(QtCore.QObject):
     thumbnail_dir = 'thumbnails'
@@ -39,15 +40,15 @@ class Library(QtCore.QObject):
         shutil.copy(image_path, os.path.join(self.__image_path,library_file_name+'.%s'%self.image_ext))
         print library_file_name,os.path.basename(image_path)
         self.__image_names.add(library_file_name)
-        self.__generate_thumbnail(library_file_name)
+        self.generate_thumbnail(library_file_name)
         self.image_added.emit(library_file_name)
 
-    def __generate_thumbnail(self,image_name):
+    def generate_thumbnail(self,image_name):
         _path = os.path.join(self.__image_path,image_name+'.%s'%self.image_ext)
         thumbnail_path = os.path.join(self.__thumbnail_path,image_name+'.%s'%self.image_ext)
         i = QtGui.QImage(_path)
         thumbnail = i.scaledToWidth(Config.thumbnail_width)
-        thumbnail.save(thumbnail_path)
+        thumbnail.save(thumbnail_path,quality=Config.thumbnail_quality)
 
     def get_next_image_name(self):
         name = '%s%04i'%(self.image_prefix,len(self.__image_names))
